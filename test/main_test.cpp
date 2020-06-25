@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "VectorTest.hpp"
+#include "MatrixTest.hpp"
 
 int main ( int argn, char* args[] )
 	{

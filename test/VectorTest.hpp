@@ -20,7 +20,7 @@ TEST ( VectorTest, CreateVector_FilledByNumberTheSameType_TestCase2 )
 	using type = float;
 	const unsigned size = 4;
 	type value = 5.4;
-	Vector<type, size> v( value );
+	Vector<type, size> v ( value );
 
 	EXPECT_FLOAT_EQ ( v.x[0], value ) << "Filling constructor of vector does not give expected value at pos 0";
 	EXPECT_FLOAT_EQ ( v.x[1], value ) << "Filling constructor of vector does not give expected value at pos 1";
@@ -34,9 +34,10 @@ TEST ( VectorTest, CreateVector_FillFcn_TestCase3 )
 	const unsigned size = 4;
 	int value = 5;
 	Vector<type, size> v;
-	v.fill(value);
+	v.fill ( value );
 
-	EXPECT_FLOAT_EQ ( v.x[0], value ) << "Filling one elem. sequence constructor of vector does not give expected value at pos 0";
+	EXPECT_FLOAT_EQ ( v.x[0], value ) <<
+									  "Filling one elem. sequence constructor of vector does not give expected value at pos 0";
 	EXPECT_FLOAT_EQ ( v.x[1], value ) << "Filling one elem. sequence constructor of vector does not give 0 at pos 1";
 	EXPECT_FLOAT_EQ ( v.x[2], value ) << "Filling one elem. sequence constructor of vector does not give 0 at pos 2";
 	EXPECT_FLOAT_EQ ( v.x[3], value ) << "Filling one elem. sequence constructor of vector does not give 0 at pos 3";
@@ -225,29 +226,29 @@ TEST ( VectorTest, MultiplyValueVector_TestCase14 )
 	EXPECT_FLOAT_EQ ( v3.x[3], 0.0f*value3 ) 	<< "Vector*value error at pos 3";
 	}
 
-	
-TEST( VectorTest, VectorNorm_TestCase15 )
+
+TEST ( VectorTest, VectorNorm_TestCase15 )
 	{
 	using type = float;
 	const unsigned size = 3;
-	Vector<type, size> v1 {1,0,0};
-	Vector<type, size> v2{0,1,0};
-	Vector<type, size> v3{0,0,1};
+	Vector<type, size> v1 {1, 0, 0};
+	Vector<type, size> v2{0, 1, 0};
+	Vector<type, size> v3{0, 0, 1};
 	Vector<type, size> v4 = v1+v2+v3;
 
 	EXPECT_FLOAT_EQ ( v1.norm(), 1.0f ) 	<< "Norm error";
 	EXPECT_FLOAT_EQ ( v2.norm(), 1.0f ) 	<< "Norm error";
 	EXPECT_FLOAT_EQ ( v3.norm(), 1.0f )		<< "Norm error";
-	EXPECT_FLOAT_EQ ( v4.norm(), std::sqrt(3.0f) ) 	<< "Norm error";
+	EXPECT_FLOAT_EQ ( v4.norm(), std::sqrt ( 3.0f ) ) 	<< "Norm error";
 	}
-	
-TEST( VectorTest, VectorSum_TestCase16 )
+
+TEST ( VectorTest, VectorSum_TestCase16 )
 	{
 	using type = float;
 	const unsigned size = 3;
-	Vector<type, size> v1 {1,0,0};
-	Vector<type, size> v2{0,1,0};
-	Vector<type, size> v3{0,0,1};
+	Vector<type, size> v1 {1, 0, 0};
+	Vector<type, size> v2{0, 1, 0};
+	Vector<type, size> v3{0, 0, 1};
 	Vector<type, size> v4 = v1+v2+v3;
 
 	EXPECT_FLOAT_EQ ( v1.sum(), 1.0f ) 	<< "Sum error";
@@ -255,14 +256,14 @@ TEST( VectorTest, VectorSum_TestCase16 )
 	EXPECT_FLOAT_EQ ( v3.sum(), 1.0f )	<< "Sum error";
 	EXPECT_FLOAT_EQ ( v4.sum(), 3.0f ) 	<< "Sum error";
 	}
-	
-TEST( VectorTest, VectorMul_TestCase17 )
+
+TEST ( VectorTest, VectorMul_TestCase17 )
 	{
 	using type = float;
 	const unsigned size = 3;
-	Vector<type, size> v1 {1,0,0};
-	Vector<type, size> v2{0,1,0};
-	Vector<type, size> v3{0,0,1};
+	Vector<type, size> v1 {1, 0, 0};
+	Vector<type, size> v2{0, 1, 0};
+	Vector<type, size> v3{0, 0, 1};
 	Vector<type, size> v4 = v1+v2+v3;
 
 	EXPECT_FLOAT_EQ ( v1.mul(), 0.0f ) 	<< "Mul error";
@@ -270,28 +271,43 @@ TEST( VectorTest, VectorMul_TestCase17 )
 	EXPECT_FLOAT_EQ ( v3.mul(), 0.0f )	<< "Mul error";
 	EXPECT_FLOAT_EQ ( v4.mul(), 1.0f ) 	<< "Mul error";
 	}
-	
-TEST( VectorTest, VectorDot_TestCase18 )
+
+TEST ( VectorTest, VectorDot_TestCase18 )
 	{
 	using type = float;
 	const unsigned size = 3;
-	Vector<type, size> v1 {1,0,0};
-	Vector<type, size> v2{0,1,0};
-	Vector<type, size> v3{0,0,1};
+	Vector<type, size> v1 {1, 0, 0};
+	Vector<type, size> v2{0, 1, 0};
+	Vector<type, size> v3{0, 0, 1};
 	Vector<type, size> v4 = v1+v2+v3;
 	Vector<type, size> v5 = v4+v4;
 
-	EXPECT_FLOAT_EQ ( v1.dot(v1), 1.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v1.dot(v2), 0.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v2.dot(v1), 0.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v3.dot(v2), 0.0f )	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v3.dot(v1), 0.0f )	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v4.dot(v1), 1.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v4.dot(v2), 1.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v4.dot(v3), 1.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v4.dot(v4), 3.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v5.dot(v4), 6.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v5.dot(v5), 12.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v1.dot ( v1 ), 1.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v1.dot ( v2 ), 0.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v2.dot ( v1 ), 0.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v3.dot ( v2 ), 0.0f )	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v3.dot ( v1 ), 0.0f )	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v4.dot ( v1 ), 1.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v4.dot ( v2 ), 1.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v4.dot ( v3 ), 1.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v4.dot ( v4 ), 3.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v5.dot ( v4 ), 6.0f ) 	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v5.dot ( v5 ), 12.0f ) 	<< "Dot product error";
+	}
+
+TEST ( VectorTest, CreateVector_FromAnotherVectorOfDifferentSize_TestCase19 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned size = 4;
+	const unsigned size2 = 2;
+	Vector<type2, size2> v1{2.4f, -3.6f};
+	Vector<type, size> v2 ( v1, 1.0f );
+
+	EXPECT_FLOAT_EQ ( v2.x[0], 2.4f ) << "Constructor from another smaller vector error";
+	EXPECT_FLOAT_EQ ( v2.x[1], -3.6f ) << "Constructor from another smaller vector error";
+	EXPECT_FLOAT_EQ ( v2.x[2], 1.0f ) << "Constructor from another smaller vector error";
+	EXPECT_FLOAT_EQ ( v2.x[3], 1.0f ) << "Constructor from another smaller vector error";
 	}
 
 #endif // VECTORTEST_HPP

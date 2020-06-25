@@ -24,15 +24,15 @@ struct Vector
 		Vector()
 			{
 			}
-		
-		Vector ( const Vector< T, size >& other)
+
+		Vector ( const Vector< T, size >& other )
 			{
 			T* it = this->x;
 			const T* it_end = this->x + size;
 			const T* it_other = other.x;
-			
+
 			// copy
-			while(it != it_end)
+			while ( it != it_end )
 				*it++ = *it_other++;
 			}
 
@@ -51,28 +51,15 @@ struct Vector
 				*it++ = val;
 			}
 
-		Vector<T, size>& operator=( const Vector<T, size>& other)
-			{
-			T* it = x;
-			T const* it_end = x + size;
-			const T* it_other = other.x;
-			
-			// copy to this
-			while(it != it_end)
-				*it++ = *it_other++;
-			
-			return *this;
-			}
-
 		/**
 		 * @brief Vector with args given by parameters
 		 *
 		 * @param args parameters must be converetable to T
 		 */
-		Vector ( std::initializer_list<T> args)
+		Vector ( std::initializer_list<T> args )
 			{
-			if(args.size() > size)
-				throw std::runtime_error( "Too many arguments in constructor params." );
+			if ( args.size() > size )
+				throw std::runtime_error ( "Too many arguments in constructor params." );
 
 			T* it = x;
 			T const* it_end = x + size;
@@ -85,13 +72,40 @@ struct Vector
 			}
 
 		/**
+		 * @brief Vector created from another vector could be smaller size.
+		 * If smaller then rest fields are filled by value fill_value.
+		 *
+		 * @tparam U
+		 * @tparam size_U
+		 * @param other
+		 * @param fill_value
+		 */
+		template<typename U, unsigned size_U>
+		Vector ( const Vector<U, size_U>& other, T fill_value=T ( 0 ) )
+			{
+			static_assert ( size_U <= size, "Too large Vector in constructor." );
+
+			T* it = x;
+			T const* it_end = end();
+			const U* it_other = other.x;
+			U const* it_other_end = other.end();
+
+			while ( it_other != it_other_end )
+				*it++ = T ( *it_other++ );
+
+			// fill rest by 0
+			while ( it != it_end )
+				*it++ = fill_value;
+			}
+
+		/**
 		 * @brief Forward begin iterator
 		 *
 		 * @return T*
 		 */
-		T* begin() const
+		inline T* begin() const
 			{
-			return x;
+			return const_cast<T*> ( x );
 			}
 
 		/**
@@ -99,7 +113,7 @@ struct Vector
 		 *
 		 * @return const T*
 		 */
-		const T* end() const
+		inline const T* end() const
 			{
 			return x+size;
 			}
@@ -111,21 +125,16 @@ struct Vector
 		 */
 		void fill ( T value )
 			{
-			T* it = x;
-			T const* it_end = x+size;
-
-			// iterate over all fields
-			while ( it != it_end )
-				*it++ = value;
+			Container::fill(begin(), end(), value);
 			}
 
 		/**
-		 * @brief Calculting dot product this Vector and 
-		 * 
-		 * other vector to 
-		 * @return T 
+		 * @brief Calculting dot product this Vector and
+		 *
+		 * other vector to
+		 * @return T
 		 */
-		T dot(const Vector<T, size>& other) const
+		T dot ( const Vector<T, size>& other ) const
 			{
 			T sum = T ( 0 );
 			const T* it = x;
@@ -134,57 +143,41 @@ struct Vector
 
 			// iterate over all fields and sum each
 			while ( it != it_end )
-				sum += (*it++)*(*it_other++);
+				sum += ( *it++ )* ( *it_other++ );
 
 			return sum;
 			}
-			
+
 		/**
 		 * @brief Euclidian norm of Vector
 		 *
 		 * @return T
 		 */
-		T norm() const
+		inline T norm() const
 			{
-			return std::sqrt ( dot(*this) );
+			return std::sqrt ( dot ( *this ) );
 			}
-		
+
 		/**
 		 * @brief Sum of all vector elements
-		 * 
-		 * @return T 
+		 *
+		 * @return T
 		 */
 		T sum() const
 			{
-			T sum = T ( 0 );
-			const T* it = x;
-			T const* it_end = x+size;
-
-			// iterate over all fields and sum each
-			while ( it != it_end )
-				sum += *it++;
-
-			return sum;
+			return Container::sum(begin(), end());
 			}
-			
+
 		/**
-		 * @brief Multoplication of all vector elements
-		 * 
-		 * @return T 
+		 * @brief Multiplication of all vector elements
+		 *
+		 * @return T
 		 */
 		T mul() const
 			{
-			T mul = T ( 1 );
-			const T* it = x;
-			T const* it_end = x+size;
-
-			// iterate over all fields and sum each
-			while ( it != it_end )
-				mul *= *it++;
-
-			return mul;
+			return Container::mul(begin(), end());
 			}
-					
+
 		/**
 		 * @brief Executing operation on Vectors corresponding elements and return corresponding Vector of result
 		 *
@@ -198,6 +191,7 @@ struct Vector
 		inline Vector<T, size>  vectorElemetsOperation ( const Vector<T, size>& other ) const
 			{
 			Vector<T, size> ans;
+			/*
 			T* it_ans = ans.x;
 			const T* it_other = other.x;
 			const T* it_this = x;
@@ -205,7 +199,9 @@ struct Vector
 
 			// iterate over all fields and sum each corresponding fields
 			while ( it_this != it_this_end )
-				*it_ans++ = operation ( *it_this++, *it_other++ );
+				*it_ans++ = operation ( *it_this++, *it_other++ );*/
+
+			Container::rangeElemetsOperation<T, operation>(begin(), end(), other.begin(), ans.begin());
 
 			return ans;
 			}
@@ -347,18 +343,9 @@ Vector<T, size> operator+ ( T value, const Vector<T, size>& v )
  * @return Vector<T, size>
  */
 template<typename T, unsigned size>
-Vector<T, size> operator- ( T value, Vector<T, size>& v )
+Vector<T, size> operator- ( T value, const Vector<T, size>& v )
 	{
-	Vector<T, size> ans;
-	T* it_ans = ans.x;
-	const T* it_this = v.x;
-	const T* it_this_end = v.x+size;
-
-	// iterate over all fields and subtract each corresponding fields
-	while ( it_this != it_this_end )
-		*it_ans++ = value - *it_this++;
-
-	return ans;
+	return v.template vectorValueOperation<subtract_inverse<T, T, T>> ( value );
 	}
 
 /**
@@ -375,7 +362,7 @@ Vector<T, size> operator* ( T value, const Vector<T, size>& v )
 	{
 	return v * value;
 	}
-	
+
 template <typename Tt, unsigned U>
 std::ostream& operator<< ( std::ostream& out, const Vector<Tt, U>& v )
 	{
