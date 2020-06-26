@@ -2,7 +2,13 @@
 #define UTILITY_HPP
 
 #include <exception>
+#include <type_traits>
 
+template<typename T, unsigned ROWS, unsigned COLS>
+class Matrix;
+
+template<typename T, unsigned SIZE>
+struct Vector;
 
 template<typename T, typename U, typename T_U = decltype ( T() + U() )>
 using operator_T_U = T_U ( * ) ( T, U );

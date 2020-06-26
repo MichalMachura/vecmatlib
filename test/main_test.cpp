@@ -3,6 +3,7 @@
 
 #include "VectorTest.hpp"
 #include "MatrixTest.hpp"
+#include "MatrixVectorTest.hpp"
 
 int main ( int argn, char* args[] )
 	{

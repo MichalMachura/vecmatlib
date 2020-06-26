@@ -106,6 +106,10 @@ TEST ( MatrixTest, Matrix_Add_TestCase9 )
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, 6.4f ) << "Error M3 = M1 + value";
 
+	M3 = value + M1;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 6.4f ) << "Error M3 = value + M1";
+
 	M3 += value;
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, 11.8f ) << "Error M3 += value";
@@ -122,7 +126,7 @@ TEST ( MatrixTest, Matrix_Subtract_TestCase10 )
 	Matrix<type2, rows, cols> M2 ( 1.0f );
 	Matrix<type, rows, cols> M3;
 
-	M3 = M1-M2;
+	M3 = M1 - M2;
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, 0.0f ) << "Error M1-M2";
 
@@ -134,9 +138,13 @@ TEST ( MatrixTest, Matrix_Subtract_TestCase10 )
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, -4.4f ) << "Error M3 = M1 - value";
 
+	M3 = value - M1;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 4.4f ) << "Error M3 = value - M1";
+
 	M3 -= value;
 	for ( type v : M3 )
-		EXPECT_FLOAT_EQ ( v, -9.8f ) << "Error M3 -= value";
+		EXPECT_FLOAT_EQ ( v, -1.0f ) << "Error M3 -= value";
 	}
 
 TEST ( MatrixTest, Matrix_Multiply_TestCase11 )
@@ -150,17 +158,21 @@ TEST ( MatrixTest, Matrix_Multiply_TestCase11 )
 	Matrix<type2, rows, cols> M2 ( 2.0f );
 	Matrix<type, rows, cols> M3;
 
-	M3 = M1*M2;
+	M3 = M1.hadamardProduct ( M2 );
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, 6.0f ) << "Error M1*M2";
 
-	M3 *= M1*M2;
+	M3.hadamardProductAssign ( M1.hadamardProduct ( M2 ) );
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, 36.0f ) << "Error M3 *= M1*M2";
 
 	M3 = M1 * value;
 	for ( type v : M3 )
 		EXPECT_FLOAT_EQ ( v, 16.2f ) << "Error M3 = M1*value";
+
+	M3 = value * M1;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 16.2f ) << "Error M3 = value*M1";
 
 	M3 *= value;
 	for ( type v : M3 )
@@ -212,8 +224,24 @@ TEST ( MatrixTest, Matrix_Iteration_TestCase13 )
 
 	EXPECT_EQ ( it_beg, it_end ) << "Error iterator.";
 	}
+TEST ( MatrixTest, Eye_TestCase14 )
+	{
+	using type = int;
+	const unsigned rows = 3;
+	const unsigned cols = 3;
+	Matrix<type, rows, cols> M1;
+	Matrix<type, rows, cols> M2{1, 0, 0, 0, 1, 0, 0, 0, 1};
+	eye ( M1 );
+	auto it_beg1 = M1.begin();
+	auto it_end1 = M1.end();
+	auto it_beg2 = M2.begin();
 
+	//std::cout << M1 << std::endl;
 
+	while ( it_beg1 != it_end1 )
+		EXPECT_EQ ( *it_beg1++, *it_beg2++ ) << "Error eye.";
+
+	}
 
 
 #endif // MATRIXTEST_HPP

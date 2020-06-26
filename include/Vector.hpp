@@ -15,6 +15,7 @@ struct Vector
 	{
 	public:
 		static const unsigned length = SIZE;
+
 	public:
 		T x[SIZE];
 
@@ -27,11 +28,19 @@ struct Vector
 			{
 			}
 
-		Vector ( const Vector< T, SIZE >& other )
+		/**
+		 * @brief Create Vector from other Vector
+		 *
+		 * @tparam U type of other Vector
+		 * @param other Vector from which is created
+		 */
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		Vector ( const Vector< U, SIZE >& other )
 			{
 			T* it = this->x;
-			const T* it_end = this->x + SIZE;
-			const T* it_other = other.x;
+			const U* it_end = other.x + SIZE;
+			const U* it_other = other.x;
 
 			// copy
 			while ( it != it_end )
@@ -54,11 +63,27 @@ struct Vector
 			}
 
 		/**
-		 * @brief Vector with args given by parameters
+		 * @brief Create Vector from matrix
 		 *
-		 * @param args parameters must be converetable to T
+		 * @tparam U matrix type
+		 * @param m matrix with one column
 		 */
-		Vector ( std::initializer_list<T> args )
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		Vector ( const Matrix<U, SIZE, 1>& m )
+			{
+			Container::copy ( begin(), end(), m.begin() );
+			}
+
+		/**
+		 * @brief Vector filled by parameters given by { }
+		 *
+		 * @tparam U type of initializer_list arguments
+		 * @param args initializer_list must by the same type and cenvertable to T
+		 */
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		Vector ( const std::initializer_list<U>& args )
 			{
 			if ( args.size() > SIZE )
 				throw std::runtime_error ( "Too many arguments in constructor params." );
@@ -82,7 +107,9 @@ struct Vector
 		 * @param other
 		 * @param fill_value
 		 */
-		template<typename U, unsigned size_U>
+		template<typename U,
+				 unsigned size_U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		Vector ( const Vector<U, size_U>& other, T fill_value=T ( 0 ) )
 			{
 			static_assert ( size_U <= SIZE, "Too large Vector in constructor." );
@@ -100,8 +127,15 @@ struct Vector
 				*it++ = fill_value;
 			}
 
-
-		template<typename U>
+		/**
+		 * @brief Assign other Vector.
+		 *
+		 * @tparam U type of other Vector
+		 * @param other Vector to assign
+		 * @return Vector<T, SIZE>&
+		 */
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		Vector<T, SIZE>& operator= ( const Vector<U, SIZE>& other )
 			{
 			Container::copy ( begin(), end(), other.begin() );
@@ -109,7 +143,15 @@ struct Vector
 			return *this;
 			}
 
-		template<typename U>
+		/**
+		 * @brief Assign other Vector given by r-reference
+		 *
+		 * @tparam U type of other Vector
+		 * @param other Vector to assign
+		 * @return Vector<T, SIZE>&
+		 */
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		Vector<T, SIZE>& operator= ( const Vector<U, SIZE>&& other )
 			{
 			Container::copy ( begin(), end(), other.begin() );
@@ -152,7 +194,9 @@ struct Vector
 		 *
 		 * @param value
 		 */
-		void fill ( T value )
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		void fill ( U value )
 			{
 			Container::fill ( begin(), end(), value );
 			}
@@ -163,11 +207,14 @@ struct Vector
 		 * other vector to
 		 * @return T
 		 */
-		T dot ( const Vector<T, SIZE>& other ) const
+		template<typename U,
+				 typename T_U = decltype ( T()*U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		T_U dot ( const Vector<U, SIZE>& other ) const
 			{
-			T sum = T ( 0 );
+			T_U sum = T ( 0 );
 			const T* it = x;
-			const T* it_other = other.x;
+			const U* it_other = other.x;
 			T const* it_end = x+SIZE;
 
 			// iterate over all fields and sum each
@@ -196,7 +243,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator+ ( const Vector<U, SIZE>& other ) const
 			{
 			Vector<T_U, SIZE> ans;
@@ -214,7 +262,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator- ( const Vector<U, SIZE>& other ) const
 			{
 			Vector<T_U, SIZE> ans;
@@ -232,7 +281,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator* ( const Vector<U, SIZE>& other ) const
 			{
 			Vector<T_U, SIZE> ans;
@@ -250,7 +300,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator+ ( U value ) const
 			{
 			Vector<T_U, SIZE> ans;
@@ -268,7 +319,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator- ( U value ) const
 			{
 			Vector<T_U, SIZE> ans;
@@ -286,7 +338,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator* ( U value ) const
 			{
 			Vector<T_U, SIZE> ans;
@@ -304,7 +357,8 @@ struct Vector
 		 * @return Vector<T_U, SIZE> result
 		 */
 		template<typename U,
-				 typename T_U = decltype ( T()+U() )>
+				 typename T_U = decltype ( T()+U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T_U, SIZE> operator/ ( U value ) const
 			{
 			if ( value == T ( 0 ) )
@@ -324,7 +378,8 @@ struct Vector
 		 * @param other second argument
 		 * @return Vector<T, SIZE>& reference to this
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator+= ( const Vector<U, SIZE>& other )
 			{
 			Container::executeContainersOperationAssign <Add> ( *this, other );
@@ -339,7 +394,8 @@ struct Vector
 		 * @param other second argument
 		 * @return Vector<T, SIZE>& reference to this
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator-= ( const Vector<U, SIZE>& other )
 			{
 			Container::executeContainersOperationAssign <Subtract> ( *this, other );
@@ -354,7 +410,8 @@ struct Vector
 		 * @param other second argument
 		 * @return Vector<T, SIZE>& reference to this
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator*= ( const Vector<U, SIZE>& other )
 			{
 			Container::executeContainersOperationAssign <Multiply> ( *this, other );
@@ -369,7 +426,8 @@ struct Vector
 		 * @param value value to add to Vector
 		 * @return Vector<T, SIZE>& this Vector
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator+= ( U value )
 			{
 			Container::executeContainerValueOperationAssign<Add> ( *this, value );
@@ -383,7 +441,8 @@ struct Vector
 		 * @param value value to subtract from Vector
 		 * @return Vector<T, SIZE>& this Vector
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator-= ( U value )
 			{
 			Container::executeContainerValueOperationAssign<Subtract> ( *this, value );
@@ -397,7 +456,8 @@ struct Vector
 		 * @param value value to multiply by
 		 * @return Vector<T, SIZE>& this Vector
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator*= ( U value )
 			{
 			Container::executeContainerValueOperationAssign<Multiply> ( *this, value );
@@ -411,7 +471,8 @@ struct Vector
 		 * @param value value to add to Vector
 		 * @return Vector<T, SIZE>& this Vector
 		 */
-		template<typename U>
+		template<typename U,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 		inline Vector<T, SIZE>& operator/= ( U value )
 			{
 			if ( value == T ( 0 ) )
@@ -441,7 +502,7 @@ struct Vector
 		 * Throw runtime_error while out of range.
 		 *
 		 * @param idx position index
-		 * @return T valeu at position idx
+		 * @return T value at position idx
 		 */
 		T get ( unsigned idx )
 			{
@@ -484,7 +545,8 @@ struct Vector
 template<typename T,
 		 typename U,
 		 typename T_U = decltype ( T()+U() ),
-		 unsigned SIZE>
+		 unsigned SIZE,
+		 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 inline Vector<T_U, SIZE> operator+ ( U value, const Vector<T, SIZE>& v )
 	{
 	return v + value;
@@ -504,7 +566,8 @@ inline Vector<T_U, SIZE> operator+ ( U value, const Vector<T, SIZE>& v )
 template<typename T,
 		 typename U,
 		 typename T_U = decltype ( T()+U() ),
-		 unsigned SIZE>
+		 unsigned SIZE,
+		 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 inline Vector<T_U, SIZE> operator- ( U value, const Vector<T, SIZE>& v )
 	{
 	Vector<T_U, SIZE> ans;
@@ -527,12 +590,22 @@ inline Vector<T_U, SIZE> operator- ( U value, const Vector<T, SIZE>& v )
 template<typename T,
 		 typename U,
 		 typename T_U = decltype ( T()+U() ),
-		 unsigned SIZE>
+		 unsigned SIZE,
+		 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
 inline Vector<T_U, SIZE> operator* ( U value, const Vector<T, SIZE>& v )
 	{
 	return v * value;
 	}
 
+/**
+ * @brief Display Vector
+ *
+ * @tparam Tt type of Vector
+ * @tparam U size of Vector
+ * @param out std::ostream
+ * @param v Vector
+ * @return std::ostream&
+ */
 template <typename Tt, unsigned U>
 std::ostream& operator<< ( std::ostream& out, const Vector<Tt, U>& v )
 	{

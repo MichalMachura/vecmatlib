@@ -408,7 +408,7 @@ TEST ( VectorTest, AccessOperators_TestCase25 )
 	using type = float;
 	const unsigned size = 4;
 	type value = 3.0;
-	Vector<type, size> v1{0.0, 3, 4, 5};
+	Vector<type, size> v1{0, 3, 4, 5};
 
 	for ( unsigned i=0; i < v1.size(); ++i )
 		{
