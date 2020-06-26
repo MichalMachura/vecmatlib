@@ -10,11 +10,13 @@
 
 #include "Utility.hpp"
 
-template<typename T, unsigned size = 3>
+template<typename T, unsigned SIZE = 3>
 struct Vector
 	{
 	public:
-		T x[size];
+		static const unsigned length = SIZE;
+	public:
+		T x[SIZE];
 
 	public:
 		/**
@@ -25,10 +27,10 @@ struct Vector
 			{
 			}
 
-		Vector ( const Vector< T, size >& other )
+		Vector ( const Vector< T, SIZE >& other )
 			{
 			T* it = this->x;
-			const T* it_end = this->x + size;
+			const T* it_end = this->x + SIZE;
 			const T* it_other = other.x;
 
 			// copy
@@ -45,7 +47,7 @@ struct Vector
 		Vector ( T val )
 			{
 			T* it = x;
-			T const* it_end = x + size;
+			T const* it_end = x + SIZE;
 			// assign val for each field
 			while ( it != it_end )
 				*it++ = val;
@@ -58,11 +60,11 @@ struct Vector
 		 */
 		Vector ( std::initializer_list<T> args )
 			{
-			if ( args.size() > size )
+			if ( args.size() > SIZE )
 				throw std::runtime_error ( "Too many arguments in constructor params." );
 
 			T* it = x;
-			T const* it_end = x + size;
+			T const* it_end = x + SIZE;
 			for ( auto&& arg : args )
 				*it++ = T ( arg );
 
@@ -72,7 +74,7 @@ struct Vector
 			}
 
 		/**
-		 * @brief Vector created from another vector could be smaller size.
+		 * @brief Vector created from another vector could be smaller SIZE.
 		 * If smaller then rest fields are filled by value fill_value.
 		 *
 		 * @tparam U
@@ -83,7 +85,7 @@ struct Vector
 		template<typename U, unsigned size_U>
 		Vector ( const Vector<U, size_U>& other, T fill_value=T ( 0 ) )
 			{
-			static_assert ( size_U <= size, "Too large Vector in constructor." );
+			static_assert ( size_U <= SIZE, "Too large Vector in constructor." );
 
 			T* it = x;
 			T const* it_end = end();
@@ -96,6 +98,23 @@ struct Vector
 			// fill rest by 0
 			while ( it != it_end )
 				*it++ = fill_value;
+			}
+
+
+		template<typename U>
+		Vector<T, SIZE>& operator= ( const Vector<U, SIZE>& other )
+			{
+			Container::copy ( begin(), end(), other.begin() );
+
+			return *this;
+			}
+
+		template<typename U>
+		Vector<T, SIZE>& operator= ( const Vector<U, SIZE>&& other )
+			{
+			Container::copy ( begin(), end(), other.begin() );
+
+			return *this;
 			}
 
 		/**
@@ -113,9 +132,19 @@ struct Vector
 		 *
 		 * @return const T*
 		 */
-		inline const T* end() const
+		inline T* end() const
 			{
-			return x+size;
+			return begin()+SIZE;
+			}
+
+		/**
+		 * @brief Return size of Vector
+		 *
+		 * @return unsigned
+		 */
+		inline static unsigned size()
+			{
+			return SIZE;
 			}
 
 		/**
@@ -125,7 +154,7 @@ struct Vector
 		 */
 		void fill ( T value )
 			{
-			Container::fill(begin(), end(), value);
+			Container::fill ( begin(), end(), value );
 			}
 
 		/**
@@ -134,12 +163,12 @@ struct Vector
 		 * other vector to
 		 * @return T
 		 */
-		T dot ( const Vector<T, size>& other ) const
+		T dot ( const Vector<T, SIZE>& other ) const
 			{
 			T sum = T ( 0 );
 			const T* it = x;
 			const T* it_other = other.x;
-			T const* it_end = x+size;
+			T const* it_end = x+SIZE;
 
 			// iterate over all fields and sum each
 			while ( it != it_end )
@@ -159,156 +188,279 @@ struct Vector
 			}
 
 		/**
-		 * @brief Sum of all vector elements
+		 * @brief Add corresponding Vectors elements  return it as corresponding Vector
 		 *
-		 * @return T
+		 * @tparam U type of second argument
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
 		 */
-		T sum() const
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator+ ( const Vector<U, SIZE>& other ) const
 			{
-			return Container::sum(begin(), end());
-			}
-
-		/**
-		 * @brief Multiplication of all vector elements
-		 *
-		 * @return T
-		 */
-		T mul() const
-			{
-			return Container::mul(begin(), end());
-			}
-
-		/**
-		 * @brief Executing operation on Vectors corresponding elements and return corresponding Vector of result
-		 *
-		 * @tparam U type of other Vector
-		 * @tparam operation function T_U(*)(T, U)
-		 * @tparam ( std::declval<T>() + std::declval<U>() ) returned Vector type
-		 * @param other second operand of size size
-		 * @return Vector<T_U, size>
-		 */
-		template<operator_T_U<T, T, T> operation>
-		inline Vector<T, size>  vectorElemetsOperation ( const Vector<T, size>& other ) const
-			{
-			Vector<T, size> ans;
-			/*
-			T* it_ans = ans.x;
-			const T* it_other = other.x;
-			const T* it_this = x;
-			const T* it_this_end = x+size;
-
-			// iterate over all fields and sum each corresponding fields
-			while ( it_this != it_this_end )
-				*it_ans++ = operation ( *it_this++, *it_other++ );*/
-
-			Container::rangeElemetsOperation<T, operation>(begin(), end(), other.begin(), ans.begin());
+			Vector<T_U, SIZE> ans;
+			Container::executeContainersOperation <Add> ( *this, other, ans );
 
 			return ans;
 			}
 
 		/**
-		 * @brief Add corresponding Vectors elements and return it as corresponding Vector
+		 * @brief Subtract corresponding Vectors elements  return it as corresponding Vector
 		 *
-		 * @param other Vector of the same size
-		 * @return Vector<T, size>
+		 * @tparam U type of second argument
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
 		 */
-		Vector<T, size> operator+ ( const Vector<T, size>& other ) const
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator- ( const Vector<U, SIZE>& other ) const
 			{
-			return vectorElemetsOperation< add<T, T> > ( other );
-			}
-
-		/**
-		 * @brief Subtract corresponding Vectors elements and return it as corresponding Vector
-		 *
-		 * @param other Vector of the same size
-		 * @return Vector<T, size>
-		 */
-		Vector<T, size> operator- ( const Vector<T, size>& other ) const
-			{
-			return vectorElemetsOperation<subtract<T, T> > ( other );
-			}
-
-		/**
-		 * @brief Multiply corresponding Vectors elements and return it as corresponding Vector
-		 *
-		 * @param other Vector of the same size
-		 * @return Vector<T, size>
-		 */
-		Vector<T, size> operator* ( const Vector<T, size>& other ) const
-			{
-			return vectorElemetsOperation<multiply<T, T> > ( other );
-			}
-
-		/**
-		 * @brief Execute operation on each element of Vector and value.
-		 * Result is Vector of corresponding to input Vector values.
-		 *
-		 * @tparam U Type of value
-		 * @tparam T_U = ( T() + U() ) type of returned Vector
-		 * @tparam operation operation to execute for each Vector element
-		 * @param value
-		 * @return Vector<T_U, size>
-		 */
-		template<operator_T_U<T, T, T> operation>
-		inline Vector<T, size>  vectorValueOperation ( T value ) const
-			{
-			Vector<T, size> ans;
-			T* it_ans = ans.x;
-			const T* it_this = x;
-			const T* it_this_end = x+size;
-
-			// iterate over all fields and execute operation on each corresponding fields
-			while ( it_this != it_this_end )
-				*it_ans++ = operation ( *it_this++, value );
+			Vector<T_U, SIZE> ans;
+			Container::executeContainersOperation <Subtract> ( *this, other, ans );
 
 			return ans;
 			}
 
 		/**
-		 * @brief Add value to each Vector element. Result is also Vector.
+		 * @brief Multiply corresponding Vectors elements  return it as corresponding Vector
 		 *
-		 * @param value value to add
-		 * @return Vector<T, size>
+		 * @tparam U type of second argument
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
 		 */
-		Vector<T, size> operator+ ( T value ) const
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator* ( const Vector<U, SIZE>& other ) const
 			{
-			return vectorValueOperation<add<T, T> > ( value );
+			Vector<T_U, SIZE> ans;
+			Container::executeContainersOperation <Multiply> ( *this, other, ans );
+
+			return ans;
 			}
 
 		/**
-		 * @brief Subtract value from each Vector element. Result is also Vector.
+		 * @brief Add Vector elements and value return it as Vector
 		 *
-		 * @param value value to subtract
-		 * @return Vector<T, size>
+		 * @tparam U value type
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
 		 */
-		Vector<T, size> operator- ( T value ) const
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator+ ( U value ) const
 			{
-			return vectorValueOperation<subtract<T, T> > ( value );
+			Vector<T_U, SIZE> ans;
+			Container::executeContainerValueOperation<Add> ( *this, value, ans );
+
+			return ans;
 			}
 
 		/**
-		 * @brief Multiply value by each Vector element. Result is also Vector.
+		 * @brief Subtract Vector elements and value return it as Vector
 		 *
-		 * @param value value to multiply
-		 * @return Vector<T, size>
+		 * @tparam U value type
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
 		 */
-		Vector<T, size> operator* ( T value ) const
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator- ( U value ) const
 			{
-			return vectorValueOperation<multiply<T, T> > ( value );
+			Vector<T_U, SIZE> ans;
+			Container::executeContainerValueOperation<Subtract> ( *this, value, ans );
+
+			return ans;
 			}
 
 		/**
-		 * @brief Divide by value each Vector element. Result is also Vector.
+		 * @brief Multiply Vector elements and value return it as Vector
 		 *
-		 * @param value value as divisor
-		 * @return Vector<T, size>
+		 * @tparam U value type
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
 		 */
-		Vector<T, size> operator/ ( T value ) const
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator* ( U value ) const
+			{
+			Vector<T_U, SIZE> ans;
+			Container::executeContainerValueOperation<Multiply> ( *this, value, ans );
+
+			return ans;
+			}
+
+		/**
+		 * @brief Divide Vector elements by value return it as Vector
+		 *
+		 * @tparam U value type
+		 * @tparam T_U = ( T()+U() ) output Vector type
+		 * @param other second argument
+		 * @return Vector<T_U, SIZE> result
+		 */
+		template<typename U,
+				 typename T_U = decltype ( T()+U() )>
+		inline Vector<T_U, SIZE> operator/ ( U value ) const
 			{
 			if ( value == T ( 0 ) )
 				throw std::runtime_error ( "Dividing by 0" );
 
-			return vectorValueOperation<multiply<T, T> > ( 1/ value );
+			Vector<T_U, SIZE> ans;
+			Container::executeContainerValueOperation<Multiply> ( *this, 1/value, ans );
+
+			return ans;;
+			}
+
+		/* OPERATORS WITH ASSIGNMENT*/
+		/**
+		 * @brief Add Vector to this Vector.
+		 *
+		 * @tparam U type of second argument
+		 * @param other second argument
+		 * @return Vector<T, SIZE>& reference to this
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator+= ( const Vector<U, SIZE>& other )
+			{
+			Container::executeContainersOperationAssign <Add> ( *this, other );
+
+			return *this;
+			}
+
+		/**
+		 * @brief Subtract Vector from this Vector.
+		 *
+		 * @tparam U type of second argument
+		 * @param other second argument
+		 * @return Vector<T, SIZE>& reference to this
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator-= ( const Vector<U, SIZE>& other )
+			{
+			Container::executeContainersOperationAssign <Subtract> ( *this, other );
+
+			return *this;
+			}
+
+		/**
+		 * @brief Multiply element wise this Vector by other
+		 *
+		 * @tparam U type of second argument
+		 * @param other second argument
+		 * @return Vector<T, SIZE>& reference to this
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator*= ( const Vector<U, SIZE>& other )
+			{
+			Container::executeContainersOperationAssign <Multiply> ( *this, other );
+
+			return *this;
+			}
+
+		/**
+		 * @brief Add value to this Vector
+		 *
+		 * @tparam U type of value
+		 * @param value value to add to Vector
+		 * @return Vector<T, SIZE>& this Vector
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator+= ( U value )
+			{
+			Container::executeContainerValueOperationAssign<Add> ( *this, value );
+			return *this;
+			}
+
+		/**
+		 * @brief Subtract value from this Vector
+		 *
+		 * @tparam U type of value
+		 * @param value value to subtract from Vector
+		 * @return Vector<T, SIZE>& this Vector
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator-= ( U value )
+			{
+			Container::executeContainerValueOperationAssign<Subtract> ( *this, value );
+			return *this;
+			}
+
+		/**
+		 * @brief Multiply this Vector by value
+		 *
+		 * @tparam U type of value
+		 * @param value value to multiply by
+		 * @return Vector<T, SIZE>& this Vector
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator*= ( U value )
+			{
+			Container::executeContainerValueOperationAssign<Multiply> ( *this, value );
+			return *this;
+			}
+
+		/**
+		 * @brief Divide this Vector by value
+		 *
+		 * @tparam U type of value
+		 * @param value value to add to Vector
+		 * @return Vector<T, SIZE>& this Vector
+		 */
+		template<typename U>
+		inline Vector<T, SIZE>& operator/= ( U value )
+			{
+			if ( value == T ( 0 ) )
+				throw std::runtime_error ( "Dividing by 0" );
+
+			Container::executeContainerValueOperationAssign<Multiply> ( *this, 1/value );
+			return *this;
+			}
+
+		/**
+		 * @brief Get reference to value from position idx
+		 * Throw runtime_error while out of range.
+		 *
+		 * @param idx
+		 * @return T&
+		 */
+		T& operator[] ( unsigned idx )
+			{
+			if ( ! ( idx < length ) )
+				throw std::runtime_error ( "Out of range!" );
+
+			return x[idx];
+			}
+
+		/**
+		 * @brief Get value from position idx
+		 * Throw runtime_error while out of range.
+		 *
+		 * @param idx position index
+		 * @return T valeu at position idx
+		 */
+		T get ( unsigned idx )
+			{
+			if ( ! ( idx < length ) )
+				throw std::runtime_error ( "Out of range!" );
+
+			return x[idx];
+			}
+
+		/**
+		 * @brief Set value at position idx
+		 *
+		 * @param idx position index
+		 * @param value value to set
+		 */
+		void set ( unsigned idx, T value )
+			{
+			if ( idx < length )
+				x[idx] = value;
 			}
 
 		template<typename Tt, unsigned U>
@@ -319,46 +471,64 @@ struct Vector
 	};
 
 /**
- * @brief Add Vector to value
+ * @brief Add value to Vector
  *
- * @tparam T type of Vector
- * @tparam size Vector size
+ * @tparam T Vector type
+ * @tparam U value type
+ * @tparam T_U = ( T()+U() ) result Vector type
+ * @tparam SIZE Vector size
  * @param value value to add
- * @param v vector
- * @return Vector<T, size>
+ * @param v Vector
+ * @return Vector<T_U, SIZE>
  */
-template<typename T, unsigned size>
-Vector<T, size> operator+ ( T value, const Vector<T, size>& v )
+template<typename T,
+		 typename U,
+		 typename T_U = decltype ( T()+U() ),
+		 unsigned SIZE>
+inline Vector<T_U, SIZE> operator+ ( U value, const Vector<T, SIZE>& v )
 	{
 	return v + value;
 	}
 
 /**
- * @brief Subtract Vector from value
+ * @brief Subtract Vector from value => result Vector
  *
- * @tparam T type of Vector
- * @tparam size Vector size
- * @param value value to be subtracted
- * @param v vector
- * @return Vector<T, size>
+ * @tparam T Vector type
+ * @tparam U value type
+ * @tparam T_U = ( T()+U() ) result Vector type
+ * @tparam SIZE Vector size
+ * @param value value
+ * @param v Vector to subtract
+ * @return Vector<T_U, SIZE>
  */
-template<typename T, unsigned size>
-Vector<T, size> operator- ( T value, const Vector<T, size>& v )
+template<typename T,
+		 typename U,
+		 typename T_U = decltype ( T()+U() ),
+		 unsigned SIZE>
+inline Vector<T_U, SIZE> operator- ( U value, const Vector<T, SIZE>& v )
 	{
-	return v.template vectorValueOperation<subtract_inverse<T, T, T>> ( value );
+	Vector<T_U, SIZE> ans;
+	Container::executeContainerValueOperation<SubtractInverse> ( v, value, ans );
+
+	return ans;
 	}
 
 /**
- * @brief Multiply Vector by value
+ * @brief Multiply value and Vector => result Vector
  *
- * @tparam T type of Vector
- * @tparam size Vector size
- * @param value value to add
- * @param v vector
- * @return Vector<T, size>
+ * @tparam T Vector type
+ * @tparam U value type
+ * @tparam T_U = ( T()+U() ) result Vector type
+ * @tparam SIZE Vector size
+ * @param value value
+ * @param v Vector
+ * @return Vector<T_U, SIZE>
  */
-template<typename T, unsigned size>
-Vector<T, size> operator* ( T value, const Vector<T, size>& v )
+template<typename T,
+		 typename U,
+		 typename T_U = decltype ( T()+U() ),
+		 unsigned SIZE>
+inline Vector<T_U, SIZE> operator* ( U value, const Vector<T, SIZE>& v )
 	{
 	return v * value;
 	}

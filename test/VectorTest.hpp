@@ -60,12 +60,13 @@ TEST ( VectorTest, CreateVector_FillByInitializer_TestCase4 )
 TEST ( VectorTest, AddVectors_TestCase5 )
 	{
 	using type = float;
+	using type2 = int;
 	const unsigned size = 4;
 	type value1 = 4.5f;
 	type value2 = 7.0f;
 	type value3 = 9.0f;
 	Vector<type, size> v1 {value1, value2};
-	Vector<type, size> v2;
+	Vector<type2, size> v2;
 	v2.fill ( value3 );
 	Vector<type, size> v3 = v1 + v2;
 
@@ -75,7 +76,7 @@ TEST ( VectorTest, AddVectors_TestCase5 )
 	EXPECT_FLOAT_EQ ( v3.x[3], value3 ) 		<< "Vector add error at pos 3";
 	}
 
-TEST ( VectorTest, SubractVectors_TestCase6 )
+TEST ( VectorTest, SubtractVectors_TestCase6 )
 	{
 	using type = float;
 	const unsigned size = 4;
@@ -251,10 +252,10 @@ TEST ( VectorTest, VectorSum_TestCase16 )
 	Vector<type, size> v3{0, 0, 1};
 	Vector<type, size> v4 = v1+v2+v3;
 
-	EXPECT_FLOAT_EQ ( v1.sum(), 1.0f ) 	<< "Sum error";
-	EXPECT_FLOAT_EQ ( v2.sum(), 1.0f ) 	<< "Sum error";
-	EXPECT_FLOAT_EQ ( v3.sum(), 1.0f )	<< "Sum error";
-	EXPECT_FLOAT_EQ ( v4.sum(), 3.0f ) 	<< "Sum error";
+	EXPECT_FLOAT_EQ ( Container::sum ( v1 ), 1.0f ) 	<< "Sum error";
+	EXPECT_FLOAT_EQ ( Container::sum ( v2 ), 1.0f ) 	<< "Sum error";
+	EXPECT_FLOAT_EQ ( Container::sum ( v3 ), 1.0f )	<< "Sum error";
+	EXPECT_FLOAT_EQ ( Container::sum ( v4 ), 3.0f ) 	<< "Sum error";
 	}
 
 TEST ( VectorTest, VectorMul_TestCase17 )
@@ -266,10 +267,10 @@ TEST ( VectorTest, VectorMul_TestCase17 )
 	Vector<type, size> v3{0, 0, 1};
 	Vector<type, size> v4 = v1+v2+v3;
 
-	EXPECT_FLOAT_EQ ( v1.mul(), 0.0f ) 	<< "Mul error";
-	EXPECT_FLOAT_EQ ( v2.mul(), 0.0f ) 	<< "Mul error";
-	EXPECT_FLOAT_EQ ( v3.mul(), 0.0f )	<< "Mul error";
-	EXPECT_FLOAT_EQ ( v4.mul(), 1.0f ) 	<< "Mul error";
+	EXPECT_FLOAT_EQ ( Container::mul ( v1 ), 0.0f ) 	<< "Mul error";
+	EXPECT_FLOAT_EQ ( Container::mul ( v2 ), 0.0f ) 	<< "Mul error";
+	EXPECT_FLOAT_EQ ( Container::mul ( v3 ), 0.0f )	<< "Mul error";
+	EXPECT_FLOAT_EQ ( Container::mul ( v4 ), 1.0f ) 	<< "Mul error";
 	}
 
 TEST ( VectorTest, VectorDot_TestCase18 )
@@ -285,8 +286,8 @@ TEST ( VectorTest, VectorDot_TestCase18 )
 	EXPECT_FLOAT_EQ ( v1.dot ( v1 ), 1.0f ) 	<< "Dot product error";
 	EXPECT_FLOAT_EQ ( v1.dot ( v2 ), 0.0f ) 	<< "Dot product error";
 	EXPECT_FLOAT_EQ ( v2.dot ( v1 ), 0.0f ) 	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v3.dot ( v2 ), 0.0f )	<< "Dot product error";
-	EXPECT_FLOAT_EQ ( v3.dot ( v1 ), 0.0f )	<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v3.dot ( v2 ), 0.0f )		<< "Dot product error";
+	EXPECT_FLOAT_EQ ( v3.dot ( v1 ), 0.0f )		<< "Dot product error";
 	EXPECT_FLOAT_EQ ( v4.dot ( v1 ), 1.0f ) 	<< "Dot product error";
 	EXPECT_FLOAT_EQ ( v4.dot ( v2 ), 1.0f ) 	<< "Dot product error";
 	EXPECT_FLOAT_EQ ( v4.dot ( v3 ), 1.0f ) 	<< "Dot product error";
@@ -309,5 +310,116 @@ TEST ( VectorTest, CreateVector_FromAnotherVectorOfDifferentSize_TestCase19 )
 	EXPECT_FLOAT_EQ ( v2.x[2], 1.0f ) << "Constructor from another smaller vector error";
 	EXPECT_FLOAT_EQ ( v2.x[3], 1.0f ) << "Constructor from another smaller vector error";
 	}
+
+TEST ( VectorTest, Vector_ContainerOperations_DifferentTypes_TestCase20 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned size = 4;
+	Vector<type2, size> v1{2.4f, -3.6f};
+	Vector<type, size> v2 ( 1.0f );
+	Vector<int, size> v3;
+	Container::executeContainersOperation<Add> ( v1, v2, v3 );
+
+	for ( unsigned i=0; i < v3.size(); ++i )
+		EXPECT_EQ ( v3.x[i], int ( v1.x[i] +v2.x[i] ) );
+	}
+
+TEST ( VectorTest, VectorAddAssign_DifferentTypes_TestCase21 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned size = 4;
+	type2 value = 3.0;
+	Vector<type2, size> v1{2.4f, -3.6f};
+	Vector<type, size> v2_aux ( 1.0f );
+	Vector<type, size> v2 = v2_aux;
+	Vector<type, size> v3 = v2_aux;
+	v2 += v1;
+	v3 += value;
+
+	for ( unsigned i=0; i < v3.size(); ++i )
+		{
+		EXPECT_FLOAT_EQ ( v2.x[i], float ( v2_aux.x[i] + v1.x[i] ) ) << "Error += Vector";
+		EXPECT_FLOAT_EQ ( v3.x[i], float ( v2_aux.x[i] + value ) ) << "Error += value";
+		}
+	}
+
+TEST ( VectorTest, VectorSubtractAssign_DifferentTypes_TestCase22 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned size = 4;
+	type2 value = 3.0;
+	Vector<type2, size> v1{2.4f, -3.6f};
+	Vector<type, size> v2_aux ( 1.0f );
+	Vector<type, size> v2 = v2_aux;
+	Vector<type, size> v3 = v2_aux;
+	v2 -= v1;
+	v3 -= value;
+
+	for ( unsigned i=0; i < v3.size(); ++i )
+		{
+		EXPECT_FLOAT_EQ ( v2.x[i], float ( v2_aux.x[i] - v1.x[i] ) ) 	<< "Error -= Vector";
+		EXPECT_FLOAT_EQ ( v3.x[i], float ( v2_aux.x[i] - value ) ) 		<< "Error -= value";
+		}
+	}
+
+TEST ( VectorTest, VectorMultiplyAssign_DifferentTypes_TestCase23 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned size = 4;
+	type2 value = 3.0;
+	Vector<type2, size> v1{2.4f, -3.6f};
+	Vector<type, size> v2_aux ( 1.0f );
+	Vector<type, size> v2 = v2_aux;
+	Vector<type, size> v3 = v2_aux;
+	v2 *= v1;
+	v3 *= value;
+
+	for ( unsigned i=0; i < v3.size(); ++i )
+		{
+		EXPECT_FLOAT_EQ ( v2.x[i], float ( v2_aux.x[i] * v1.x[i] ) ) 	<< "Error *= Vector";
+		EXPECT_FLOAT_EQ ( v3.x[i], float ( v2_aux.x[i] * value ) ) 		<< "Error *= value";
+		}
+	}
+
+TEST ( VectorTest, VectorDivideAssign_DifferentTypes_TestCase24 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned size = 4;
+	type2 value = 3.0;
+	Vector<type2, size> v1{2.4f, -3.6f};
+	Vector<type, size> v2_aux ( 1.0f );
+	Vector<type, size> v2 = v2_aux;
+	v2 /= value;
+
+	for ( unsigned i=0; i < v2.size(); ++i )
+		{
+		EXPECT_FLOAT_EQ ( v2.x[i], float ( v2_aux.x[i] / value ) ) 		<< "Error /= value";
+		}
+	}
+
+
+TEST ( VectorTest, AccessOperators_TestCase25 )
+	{
+	using type = float;
+	const unsigned size = 4;
+	type value = 3.0;
+	Vector<type, size> v1{0.0, 3, 4, 5};
+
+	for ( unsigned i=0; i < v1.size(); ++i )
+		{
+		EXPECT_FLOAT_EQ ( v1.x[i], v1.get ( i ) )	<< "Error get()";
+		EXPECT_FLOAT_EQ ( v1.x[i], v1[i] )	<< "Error operator[]";
+		v1.set ( i, value );
+		EXPECT_FLOAT_EQ ( v1.x[i], value )	<< "Error set()";
+		EXPECT_FLOAT_EQ ( v1.get ( i ), value )	<< "Error get()";
+		EXPECT_FLOAT_EQ ( v1[i], value )	<< "Error operator[]";
+		}
+	}
+
 
 #endif // VECTORTEST_HPP

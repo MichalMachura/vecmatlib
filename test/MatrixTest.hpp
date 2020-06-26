@@ -35,8 +35,9 @@ TEST ( MatrixTest, MatrixCreate_FillConstructor_TestCase4 )
 	using type = float;
 	const unsigned rows = 4;
 	const unsigned cols = 4;
-	Matrix<type, rows, cols> M;
+	Matrix<type, rows, cols> M ( 1 );
 
+	EXPECT_FLOAT_EQ ( M ( 0, 0 ), 1.0f ) << "Error fill.";
 	}
 
 TEST ( MatrixTest, Matrix_ParentesisOperators_TestCase5 )
@@ -67,9 +68,9 @@ TEST ( MatrixTest, Matrix_ElementsSum_TestCase7 )
 	using type = float;
 	const unsigned rows = 4;
 	const unsigned cols = 4;
-	Matrix<type, rows, cols> M;
+	Matrix<type, rows, cols> M ( 1.0f );
 
-	EXPECT_FLOAT_EQ ( M.sum(), 16.0f ) << "Error sum.";
+	EXPECT_FLOAT_EQ ( Container::sum ( M ), 16.0f ) << "Error sum.";
 	}
 
 TEST ( MatrixTest, Matrix_ElementsMultiplication_TestCase8 )
@@ -77,9 +78,139 @@ TEST ( MatrixTest, Matrix_ElementsMultiplication_TestCase8 )
 	using type = float;
 	const unsigned rows = 4;
 	const unsigned cols = 4;
-	Matrix<type, rows, cols> M;
+	Matrix<type, rows, cols> M ( 1.0f );
 
-	EXPECT_FLOAT_EQ ( M.mul(), 0.0f ) << "Error mul.";
+	EXPECT_FLOAT_EQ ( Container::mul ( M ), 1.0f ) << "Error mul.";
+	}
+
+TEST ( MatrixTest, Matrix_Add_TestCase9 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned rows = 4;
+	const unsigned cols = 4;
+	type2 value = 5.4;
+	Matrix<type, rows, cols> M1 ( 1.0f );
+	Matrix<type2, rows, cols> M2 ( 1.0f );
+	Matrix<type, rows, cols> M3;
+
+	M3 = M1+M2;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 2.0f ) << "Error M1+M2";
+
+	M3 += M1+M2;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 4.0f ) << "Error M3 += M1+M2";
+
+	M3 = M1 + value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 6.4f ) << "Error M3 = M1 + value";
+
+	M3 += value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 11.8f ) << "Error M3 += value";
+	}
+
+TEST ( MatrixTest, Matrix_Subtract_TestCase10 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned rows = 4;
+	const unsigned cols = 4;
+	type2 value = 5.4;
+	Matrix<type, rows, cols> M1 ( 1.0f );
+	Matrix<type2, rows, cols> M2 ( 1.0f );
+	Matrix<type, rows, cols> M3;
+
+	M3 = M1-M2;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 0.0f ) << "Error M1-M2";
+
+	M3 -= M2;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, -1.0f ) << "Error M3 -= M2";
+
+	M3 = M1 - value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, -4.4f ) << "Error M3 = M1 - value";
+
+	M3 -= value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, -9.8f ) << "Error M3 -= value";
+	}
+
+TEST ( MatrixTest, Matrix_Multiply_TestCase11 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned rows = 4;
+	const unsigned cols = 4;
+	type2 value = 5.4;
+	Matrix<type, rows, cols> M1 ( 3.0f );
+	Matrix<type2, rows, cols> M2 ( 2.0f );
+	Matrix<type, rows, cols> M3;
+
+	M3 = M1*M2;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 6.0f ) << "Error M1*M2";
+
+	M3 *= M1*M2;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 36.0f ) << "Error M3 *= M1*M2";
+
+	M3 = M1 * value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 16.2f ) << "Error M3 = M1*value";
+
+	M3 *= value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, 16.2f*value ) << "Error M3 *= value";
+	}
+
+TEST ( MatrixTest, Matrix_Divide_TestCase12 )
+	{
+	using type = float;
+	using type2 = double;
+	const unsigned rows = 4;
+	const unsigned cols = 4;
+	type2 value = 5.4;
+	Matrix<type, rows, cols> M1 ( 6.0f );
+	Matrix<type, rows, cols> M3;
+
+	M3 = M1 / value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, type ( 6.0f/value ) ) << "Error M3 += value";
+
+	M3 /= value;
+	for ( type v : M3 )
+		EXPECT_FLOAT_EQ ( v, type ( type ( 6.0f/value )/value ) ) << "Error M3 += value";
+	}
+
+
+TEST ( MatrixTest, Matrix_Iteration_TestCase13 )
+	{
+	using type = float;
+	const unsigned rows = 4;
+	const unsigned cols = 4;
+	Matrix<type, rows, cols> M;
+	auto it_beg = M.begin();
+	auto it_end = M.end();
+
+	for ( unsigned i = 0; i < M.rows; ++i )
+		{
+		auto it_row_beg = M.begin ( i );
+		auto it_row_end = M.end ( i );
+
+		for ( unsigned j = 0; j < M.cols; ++j )
+			{
+			EXPECT_FLOAT_EQ ( *it_row_beg++, M ( i, j ) ) << "Error iterator row.";
+			EXPECT_FLOAT_EQ ( *it_beg++, M ( i, j ) ) << "Error iterator.";
+			EXPECT_FLOAT_EQ ( M.x[i][j], M ( i, j ) ) << "Error operator[].";
+			}
+		EXPECT_EQ ( it_row_beg, it_row_end ) << "Error iterator row.";
+		}
+
+	EXPECT_EQ ( it_beg, it_end ) << "Error iterator.";
 	}
 
 
