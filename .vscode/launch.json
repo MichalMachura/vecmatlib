@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/app.exe",
-            "preLaunchTask": "TASK_Compile_Link",
+            "preLaunchTask": "",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

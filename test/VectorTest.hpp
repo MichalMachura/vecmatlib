@@ -421,5 +421,27 @@ TEST ( VectorTest, AccessOperators_TestCase25 )
 		}
 	}
 
+TEST ( VectorTest, CrossProduct_TestCase26 )
+	{
+	using type = float;
+	const unsigned size = 3;
+	Vector<type, size> v1{1, 3, 4};
+	Vector<type, size> v2{-3, 4, -10};
+	Vector<type, size> v3;
+	Vector<type, size> v4{-46, -2, 13};
+
+	// std::cout << "first: " << v1 << std::endl;
+	// std::cout << "second: " << v2 << std::endl;
+	// std::cout << "out: " << v3 << std::endl;
+
+	crossProduct ( v1, v2, v3 );
+	// std::cout << "crossProduct: " << v3 << std::endl;
+
+	for ( int i = 0; i < size; ++i )
+		{
+		EXPECT_FLOAT_EQ ( v3[i], v4[i] )	<< "Error crossProduct";
+		}
+	}
+
 
 #endif // VECTORTEST_HPP

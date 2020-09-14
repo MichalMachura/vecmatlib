@@ -3,7 +3,6 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:\\OpenCV Library\\include",
                 "C:\\googletest\\googletest\\include",
                 "${workspaceFolder}\\include"
             ],

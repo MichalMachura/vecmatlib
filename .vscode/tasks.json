@@ -2,104 +2,16 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "TASK_Compile",
-            "type": "shell",
-            "command": "g++",
-            "args": [
-                "-g",
-                "-std=c++14",
-                "-I\"C:\\OpenCV Library\\include\"",
-                "-I\"${workspaceFolder}\\include\"",
-                "-c",
-                "${workspaceFolder}\\src\\*.cpp",
-                "${workspaceFolder}\\src\\main\\*.cpp"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}\\build",
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "TASK_Link",
-            "type": "shell",
-            "command": "g++",
-            "args": [
-                "-g",
-                "${workspaceFolder}\\build\\*.o",
-                "-L\"C:\\OpenCV Library\\x64\\mingw\\lib\"",
-                "-lopencv_core411",
-                "-lopencv_highgui411",
-                "-lopencv_imgcodecs411",
-                "-lopencv_imgproc411",
-                "-o",
-                "${workspaceFolder}\\app.exe",
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}\\build",
-            },
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "TASK_Run",
-            "type": "shell",
-            "command": "${workspaceFolder}\\app.exe",
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "TASK_Make_All",
-            "type": "shell",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "TASK_Compile",
-                "TASK_Link",
-                "TASK_Run"
-            ],
-            "group": "build",
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
-            "label": "TASK_Compile_Link",
-            "type": "shell",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "TASK_Compile",
-                "TASK_Link"
-            ],
-            "group": "build",
-            "problemMatcher": [
-                "$gcc"
-            ]
-        },
-        {
             "label": "TASK_Test",
             "type": "shell",
             "command": "g++",
             "args": [
                 "-std=c++14",
-                "-I\"C:\\OpenCV Library\\include\"",
                 "-I\"${workspaceFolder}\\include\"",
                 "-I\"C:\\googletest\\googletest\\include\"",
-                "${workspaceFolder}\\src\\*.cpp",
                 "${workspaceFolder}\\test\\*",
                 "-L\"C:\\googletest\\build\\lib\"",
                 "-lgtest",
-                "-L\"C:\\OpenCV Library\\x64\\mingw\\lib\"",
-                "-lopencv_core411",
-                "-lopencv_highgui411",
-                "-lopencv_imgcodecs411",
-                "-lopencv_imgproc411",
                 "-o",
                 "${workspaceFolder}\\test.exe",
                 "&&",

@@ -10,6 +10,18 @@
 
 #include "Utility.hpp"
 
+
+template<typename T, unsigned SIZE>
+struct Vector;
+
+template<typename T,
+		 typename U,
+		 typename T_U = decltype ( T()*U() ),
+		 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+void crossProduct ( const Vector<T, 3>& first,
+					const Vector<U, 3>& second,
+					Vector<T_U, 3>& out );
+
 template<typename T, unsigned SIZE = 3>
 struct Vector
 	{
@@ -530,6 +542,33 @@ struct Vector
 		~Vector()
 			{}
 	};
+
+/**
+ * @brief Compute Vector cross product of first and second
+ * and save result into out
+ *
+ * @tparam T first Vector type
+ * @tparam U second Vector type
+ * @tparam T_U = ( T()+U() ) result Vector type
+ * @tparam SIZE Vector size
+ * @param first const Vector&
+ * @param second const Vector&
+ * @param out Vector&
+ */
+template<typename T,
+		 typename U,
+		 typename T_U = decltype ( T()*U() ),
+		 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+void crossProduct ( const Vector<T, 3>& first,
+					const Vector<U, 3>& second,
+					Vector<T_U, 3>& out )
+	{
+	T_U* it_out = out.begin();
+
+	*it_out++ = first.x[1]*second.x[2] - first.x[2]*second.x[1];
+	*it_out++ = first.x[2]*second.x[0] - first.x[0]*second.x[2];
+	*it_out = first.x[0]*second.x[1] - first.x[1]*second.x[0];
+	}
 
 /**
  * @brief Add value to Vector
