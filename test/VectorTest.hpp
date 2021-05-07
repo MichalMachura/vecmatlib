@@ -46,14 +46,21 @@ TEST ( VectorTest, CreateVector_FillFcn_TestCase3 )
 TEST ( VectorTest, CreateVector_FillByInitializer_TestCase4 )
 	{
 	using type = float;
+	using type2 = int;
+	using type3 = double;
 	const unsigned size = 4;
 	type value1 = 4.5f;
-	type value2 = 7.0f;
-	Vector<type, size> v {value1, value2};
+	type2 value2 = 7;
+	type3 value3 = 7.0;
+
+	// this generate warnings, but it's intend action
+	// It's check for getting few types of args
+	Vector<type, size> v {value1, value2, value3};
+
 
 	EXPECT_FLOAT_EQ ( v.x[0], type ( value1 ) ) << "Sequence constructor of vector does not give expected value at pos 0";
 	EXPECT_FLOAT_EQ ( v.x[1], type ( value2 ) ) << "Sequence constructor of vector does not give expected value at pos 1";
-	EXPECT_FLOAT_EQ ( v.x[2], type ( 0 ) ) 		<< "Sequence constructor of vector does not give 0 at pos 2";
+	EXPECT_FLOAT_EQ ( v.x[2], type ( value3 ) ) 		<< "Sequence constructor of vector does not give 0 at pos 2";
 	EXPECT_FLOAT_EQ ( v.x[3], type ( 0 ) ) 		<< "Sequence constructor of vector does not give 0 at pos 3";
 	}
 

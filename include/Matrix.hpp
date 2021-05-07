@@ -46,6 +46,17 @@ static void cauchyProduct ( const Vector<Tt, SIZE1>& first,
 							const Matrix<U, 1, COLS2>& second,
 							Matrix<T_U, SIZE1, COLS2>& output );
 
+template<typename Tt,
+		 typename U,
+		 typename T_U = decltype ( Tt()*U() ),
+		 unsigned ROWS1,
+		 unsigned COLS1,
+		 unsigned SIZE2,
+		 std::enable_if_t<std::is_convertible<U, Tt>::value, int> = 0>
+static void transposedCauchyProduct ( const Matrix<Tt, ROWS1, COLS1>& first,
+									  const Vector<U, SIZE2>& second,
+									  Vector<T_U, ROWS1>& output );
+
 template<typename T, unsigned ROWS=3, unsigned COLS=3>
 class Matrix
 	{
@@ -550,6 +561,30 @@ class Matrix
 			return ans;
 			}
 
+		/**
+		* @brief Computing standard Matrix Vector multiplication with matrix transposition.
+		* Must be fullfill assumption ROWS == SIZE2
+		*
+		* @tparam U type of second Vector
+		* @tparam T_U = ( Tt()*U() ) type of output Vector
+		* @tparam SIZE2 size of second Vector
+		* @param second second Vector
+		* @return Vector result of multiplication
+		*/
+		template<typename U,
+				 typename T_U = decltype ( T()*U() ),
+				 unsigned SIZE2,
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		Vector<T_U, COLS> transposedMul ( const Vector<U, SIZE2>& second ) const
+			{
+			Vector<T_U, COLS> ans;
+			transposedCauchyProduct<T, U, T_U> ( *this, second, ans );
+
+			return ans;
+			}
+
+
+
 		template<typename T_, unsigned ROWS_, unsigned COLS_>
 		friend std::ostream& operator<< ( std::ostream& out, const Matrix<T_, ROWS_, COLS_>& m );
 
@@ -790,6 +825,57 @@ static void cauchyProduct ( const Matrix<Tt, ROWS1, COLS1>& first,
 		}
 	}
 
+
+/**
+* @brief Computing standard Matrix Vector multiplication with transposition of first matrix.
+* Must be fullfill assumption COLS1 == SIZE2
+*
+* @tparam Tt type of first Matrix
+* @tparam U type of second Vector
+* @tparam T_U = ( Tt()*U() ) type of output Vector
+* @tparam ROWS1 number of rows of first Matrix
+* @tparam COLS1 number of cols of first Matrix
+* @tparam SIZE2 size of second Vector
+* @param first first Matrix which will be calculated as transposed
+* @param second second Vector
+* @param output Vector result of multiplication
+*/
+template<typename Tt,
+		 typename U,
+		 typename T_U = decltype ( Tt()*U() ),
+		 unsigned ROWS1,
+		 unsigned COLS1,
+		 unsigned SIZE2,
+		 std::enable_if_t<std::is_convertible<U, Tt>::value, int> = 0>
+static void transposedCauchyProduct ( const Matrix<Tt, ROWS1, COLS1>& first,
+									  const Vector<U, SIZE2>& second,
+									  Vector<T_U, ROWS1>& output )
+	{
+	static_assert ( ROWS1 == SIZE2, "First transposed matrix rows number must be equal to vector size." );
+	// iterator to result beginning
+	T_U* it_output_beg = output.begin();
+
+	// for each output vector element
+	for ( unsigned i=0; i < COLS1; ++i )
+		{
+		Tt* it_first_beg = first.end () -1 -i;
+		U* it_second_beg = second.begin ();
+		U* it_second_end = second.end ();
+		// value for (i) position
+		T_U value = T_U ( 0 );
+
+		// multiply and sum elements from first(:, ROWS1 - i-1) and second(:)
+		while ( it_second_beg != it_second_end )
+			{
+			value += *it_first_beg * *it_second_beg++;
+			it_first_beg -= COLS1;
+			}
+
+		// assign to result
+		*it_output_beg++ = value;
+		}
+	}
+
 /**
 * @brief Computing standard Vector Matrix multiplication.
 * Must be fullfill assumption SIZE1 == COLS2 AND ROWS2 == 1
@@ -885,5 +971,51 @@ inline void eye ( Matrix<T, SIZE, SIZE>& m )
 		}
 	}
 
+// x
+template<typename T>
+Matrix<T, 3, 3> rotationX ( T angle )
+	{
+	T cos_angle = cos ( angle );
+	T sin_angle = sin ( angle );
+
+	return Matrix<T, 3, 3> { T ( 1 ), T ( 0 ), T ( 0 ),
+							 T ( 0 ), cos_angle, -sin_angle,
+							 T ( 0 ), sin_angle, cos_angle
+						   };
+	}
+
+// y
+template<typename T>
+Matrix<T, 3, 3> rotationY ( T angle )
+	{
+	T cos_angle = cos ( angle );
+	T sin_angle = sin ( angle );
+
+	return Matrix<T, 3, 3> { cos_angle, T ( 0 ), sin_angle,
+							 T ( 0 ), T ( 1 ), T ( 0 ),
+							 -sin_angle, T ( 0 ), cos_angle
+						   };
+	}
+
+// z
+template<typename T>
+Matrix<T, 3, 3> rotationZ ( T angle )
+	{
+	T cos_angle = cos ( angle );
+	T sin_angle = sin ( angle );
+
+	return Matrix<T, 3, 3> { cos_angle, -sin_angle, T ( 0 ),
+							 sin_angle, cos_angle, T ( 0 ),
+							 T ( 0 ), T ( 0 ), T ( 1 ),
+						   };
+	}
+
+template<typename T>
+Matrix<T, 3, 3> rotationMatrix ( const Vector<T, 3>& angles )
+	{
+	return rotationZ ( angles.x[2] ) *
+		   rotationY ( angles.x[1] ) *
+		   rotationX ( angles.x[0] );
+	}
 
 #endif //MATRIX_HPP

@@ -1,0 +1,9 @@
+VecMatLib is a simple library operated on const size vectors and matrices.
+Library is implemented as templates.
+
+Implemented are functionalities like:
+- vector and matrix elementwise operations
+- vector matrix operations
+- dot product
+- cross protuct
+- etc.

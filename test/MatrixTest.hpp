@@ -224,6 +224,7 @@ TEST ( MatrixTest, Matrix_Iteration_TestCase13 )
 
 	EXPECT_EQ ( it_beg, it_end ) << "Error iterator.";
 	}
+
 TEST ( MatrixTest, Eye_TestCase14 )
 	{
 	using type = int;

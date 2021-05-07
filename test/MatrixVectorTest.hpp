@@ -87,4 +87,76 @@ TEST ( MatrixVectorTest, VectorMatrixMultiplication_CauchyProduct_TestCase4 )
 		EXPECT_EQ ( *it3_beg++, *it4_beg++ ) << "Error in M3 = v2*M1";
 	}
 
+TEST ( MatrixVectorTest, VectorMatrixMultiplication_TransposedCauchyProduct_TestCase5 )
+	{
+	using type = int;
+	const unsigned rows = 2;
+	const unsigned cols = 2;
+	Matrix<type, rows, cols> M1{1, 2, 3, 4};
+	Vector<type, rows> v2 {1, 2};
+	Vector<type, cols> v3;
+	Vector<type, cols> v4 {8, 5};
+
+	auto it3_beg = v3.begin();
+	auto it3_end = v3.end();
+	auto it4_beg = v4.begin();
+
+	v3 = M1.transposedMul ( v2 );
+
+	while ( it3_beg != it3_end )
+		EXPECT_EQ ( *it3_beg++, *it4_beg++ ) << "Error in v3 = M1.transposedMul(v2)";
+	}
+
+TEST ( MatrixVectorTest, Rotation_TestCase6 )
+	{
+	using type = float;
+	const unsigned rows = 3;
+	const unsigned cols = 3;
+	Vector<type, 3> v1{1, 0, 0},
+		   rot{0, 0.0, float ( M_PI_2 )},
+		   v2,
+		   v3{-4.37114e-08f, 1.f, 0.f};
+	Matrix<type, rows, cols> M = rotationMatrix ( rot );
+
+	v2 = M*v1;
+
+	auto it_beg1 = v2.begin();
+	auto it_end1 = v2.end();
+	auto it_beg2 = v3.begin();
+
+	// std::cout << v2 << std::endl;
+	// std::cout << M << std::endl;
+	// std::cout << v3 << std::endl;
+
+	while ( it_beg1 != it_end1 )
+		EXPECT_FLOAT_EQ ( *it_beg1++, *it_beg2++ ) << "Error rotation.";
+
+	}
+
+TEST ( MatrixVectorTest, RotationZ_TestCase7 )
+	{
+	using type = float;
+	const unsigned rows = 3;
+	const unsigned cols = 3;
+	type angle = M_PI_2;
+	Vector<type, 3> v1{1, 0, 0},
+		   v2,
+		   v3{-4.37114e-08f, 1.f, 0.f};
+	Matrix<type, rows, cols> M = rotationZ ( angle );
+
+	v2 = M*v1;
+
+	auto it_beg1 = v2.begin();
+	auto it_end1 = v2.end();
+	auto it_beg2 = v3.begin();
+
+	std::cout << v2 << std::endl;
+	std::cout << M << std::endl;
+	std::cout << v3 << std::endl;
+
+	while ( it_beg1 != it_end1 )
+		EXPECT_FLOAT_EQ ( *it_beg1++, *it_beg2++ ) << "Error rotation.";
+
+	}
+
 #endif // MATRIXVECTOR_HPP

@@ -51,7 +51,7 @@ struct Vector
 		Vector ( const Vector< U, SIZE >& other )
 			{
 			T* it = this->x;
-			const U* it_end = other.x + SIZE;
+			const T* it_end = this->x + SIZE;
 			const U* it_other = other.x;
 
 			// copy
@@ -93,9 +93,9 @@ struct Vector
 		 * @tparam U type of initializer_list arguments
 		 * @param args initializer_list must by the same type and cenvertable to T
 		 */
-		template<typename U,
-				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
-		Vector ( const std::initializer_list<U>& args )
+		// template<typename U,
+		// 		 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		Vector ( const std::initializer_list<T>& args )
 			{
 			if ( args.size() > SIZE )
 				throw std::runtime_error ( "Too many arguments in constructor params." );
@@ -237,6 +237,26 @@ struct Vector
 			}
 
 		/**
+		* @brief Compute Vector cross product of this and other
+		* and return vector
+		*
+		* @tparam U other Vector type
+		* @tparam T_U = ( T()+U() ) result Vector type
+		* @tparam SIZE Vector size
+		* @param other const Vector&
+		*/
+		template<typename U,
+				 typename T_U = decltype ( T()*U() ),
+				 std::enable_if_t<std::is_convertible<U, T>::value, int> = 0>
+		Vector<T_U, 3> cross ( const Vector<U, 3>& other ) const
+			{
+			Vector<T_U, 3> ans;
+			crossProduct ( *this, other, ans );
+
+			return ans;
+			}
+
+		/**
 		 * @brief Euclidian norm of Vector
 		 *
 		 * @return T
@@ -244,6 +264,27 @@ struct Vector
 		inline T norm() const
 			{
 			return std::sqrt ( dot ( *this ) );
+			}
+
+		/**
+		 * @brief Normalization of Vector by
+		 * dividing all elements by Vector norm
+		 *
+		 * Normalization is executed only when norm is != 0
+		 *
+		 * !!! WARNING FLOATING POINT
+		 *
+		 * @return bool if Vector were normalized
+		 */
+		inline bool normalize()
+			{
+			T n = norm();
+			bool condition = n != T ( 0 );
+
+			if ( condition )
+				*this/= n;
+
+			return condition;
 			}
 
 		/**
@@ -615,6 +656,22 @@ inline Vector<T_U, SIZE> operator- ( U value, const Vector<T, SIZE>& v )
 	return ans;
 	}
 
+
+/**
+ * @brief Opposite Vector by multiply by -1
+ *
+ * @tparam T Vector type
+ * @tparam SIZE Vector size
+ * @param v Vector base vector
+ * @return Vector<T, SIZE> opposite vector
+ */
+template<typename T,
+		 unsigned SIZE>
+inline Vector<T, SIZE> operator- ( const Vector<T, SIZE>& v )
+	{
+	return -1*v;
+	}
+
 /**
  * @brief Multiply value and Vector => result Vector
  *
@@ -635,6 +692,136 @@ inline Vector<T_U, SIZE> operator* ( U value, const Vector<T, SIZE>& v )
 	{
 	return v * value;
 	}
+
+/**
+ * @brief Return vector of cartesian coordinates
+ *
+ * @tparam T type of vector
+ * @param v vector of spherical coordinates
+ * v = {fi, theta, r}
+ * fi - angle between v and OX on XY plane
+ * theta - angle between OZ axis on plane Zv
+ * r - norm of v
+ * @return Vector<T, 3> { x, y, z}
+ * */
+template<typename T>
+Vector<T, 3> sphericalToCartesian ( const Vector<T, 3>& v )
+	{
+	// references to vector components
+	const T& fi = v.x[0], &theta = v.x[1], &r = v.x[2];
+	// length of v's projection on XY plane
+	T r_xy = r*sin ( theta );
+
+	return Vector<T> {T ( r_xy*cos ( fi ) ),
+					  T ( r_xy*sin ( fi ) ),
+					  T ( r*cos ( theta ) )
+					 };
+	}
+
+
+/**
+ * @brief Return vector of spherical coordinates
+ *
+ * @tparam T type of vector
+ * @param v vector of cartesian coordinates
+ * 	v = {x, y, z}
+ * @return Vector<T, 3> { fi, theta, r}
+ * fi - angle between v and OX on XY plane
+ * theta - angle between OZ axis on plane Zv
+ * r - norm of v
+ * */
+template<typename T>
+Vector<T, 3> cartesianToSpherical ( const Vector<T, 3>& v )
+	{
+	// angle between v and OX on XY plane
+	T fi = atan2 ( v.x[1], v.x[0] );
+	// sum of squares of projection's coordinates on XY plane
+	T r_xy_2 = v.x[0]*v.x[0] + v.x[1]*v.x[1];
+	// norm L2
+	T r = sqrt ( r_xy_2 + v.x[2]*v.x[2] );
+	// angle between OZ axis on plane Zv
+	//T theta = atan2 ( v.x[2], ( r_xy_2 ) ) - M_PI_2;
+	T theta = atan2 ( ( r_xy_2 ), r );
+
+	return {fi, theta, r};
+	}
+
+/**
+ * @brief return vector of angles of v's projections and axis
+ *
+ * @tparam T type of vector
+ * @param v cartesian coordinates
+ *  v = {x, y, z}
+ * @return Vector<T, 3> {fi, theta, ksi}
+ * fi - angle between OZ and v on OZ x OY plane, rotation around OX
+ * theta - angle between OX and v on OX x OZ plane, rotation around OY
+ * ksi - angle between OY and v on OY x OX plane, rotation around OZ
+ */
+template<typename T>
+Vector<T, 3> cartesianToAngles ( const Vector<T>& v )
+	{
+	T fi = atan2 ( v.x[1], v.x[2] );
+	T theta = atan2 ( v.x[2], v.x[0] );
+	T ksi = atan2 ( v.x[0], v.x[1] );
+
+	return Vector<T> {fi, theta, ksi};
+	}
+
+
+/**
+ * @brief Return vector of cartesian coordinates
+ *
+ * @tparam T type of vector
+ * @param v vector of cylindrical coordinates
+ * v = {r, fi, z}
+ * r - norm of projection on XY plane
+ * fi - angle between OX on XY plane
+ * z - z coordinate
+ * @return Vector<T, 3> { x, y, z}
+ * */
+template<typename T>
+Vector<T, 3> cylindricalToCartesian ( const Vector<T, 3>& v )
+	{
+	const T& r = v.x[0], &fi = v.x[1], & z = v.x[2];
+
+	return Vector<T> {T ( r*cos ( fi ) ),
+					  T ( r*sin ( fi ) ),
+					  z
+					 };
+	}
+
+
+/**
+ * @brief Return vector of cylindrical coordinates
+ *
+ * @tparam T type of vector
+ * @param v vector of cartesian coordinates
+ * 	v = {x, y, z}
+ * @return Vector<T, 3> { r, fi, z}
+ * r - norm of projection on XY plane
+ * fi - angle between OX on XY plane
+ * z - z coordinate
+ * */
+template<typename T>
+Vector<T, 3> cartesianToCylindrical ( const Vector<T, 3>& v )
+	{
+	// angle between v and OX on XY plane
+	T fi = atan2 ( v.x[1], v.x[0] );
+	// norm of XY projection
+	T r = sqrt ( v.x[0]*v.x[0] + v.x[1]*v.x[1] );
+
+	return {r, fi, v.x[2]};
+	}
+
+template<typename T, unsigned SIZE>
+Vector<T, SIZE> radToDeg ( const Vector<T, SIZE>& v )
+	{
+	Vector<T, SIZE> ans =  v* ( T ( 180 )/T ( M_PI ) );
+
+	return ans;
+	}
+
+
 
 /**
  * @brief Display Vector
